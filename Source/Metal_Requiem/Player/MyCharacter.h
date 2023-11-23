@@ -40,5 +40,10 @@ protected:
 	void Sprint();
 	void Walk();
 	void Crouched();
+	UAnimSequence* WalkA;
+	UAnimSequence* Stand;
+	UAnimSequence* SprintA;
+	bool IsMoving;
+
 
 };
