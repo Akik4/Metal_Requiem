@@ -45,6 +45,12 @@ AMyCharacter::AMyCharacter()
 		SprintA = SprintAnimation.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimSequence> CrouchAnimation(TEXT("/Game/AnimStarterPack/crouch_walk_forward"));
+	if (CrouchAnimation.Object != NULL)
+	{
+		Croutch = CrouchAnimation.Object;
+	}
+
 
 	// Create a camera element with position and control
 	CameraSpring = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpring"));
@@ -71,6 +77,7 @@ void AMyCharacter::BeginPlay()
 bool IsWalking = false;
 bool IsSprint = false;
 bool Sprinting = false;
+bool Croumch = false;
 // Called every frame
 void AMyCharacter::Tick(float DeltaTime)
 {
@@ -86,12 +93,21 @@ void AMyCharacter::Tick(float DeltaTime)
 				GetMesh()->SetPlayRate(0.5f);
 				Sprinting = true;
 				IsWalking = false;
+				Croumch = false;
 			}
 		}else if (!IsWalking) {
 			GetMesh()->PlayAnimation(WalkA, true);
 			GetMesh()->SetPlayRate(0.5f);
 			IsWalking = true;
 			Sprinting = false;
+			Croumch = false;
+		}
+		else if (!Croumch) {
+			GetMesh()->PlayAnimation(Croutch, true);
+			GetMesh()->SetPlayRate(0.5f);
+			IsWalking = true;
+			Sprinting = false;
+			Croumch = true;
 		}
 		
 	}
@@ -100,6 +116,7 @@ void AMyCharacter::Tick(float DeltaTime)
 		GetMesh()->SetPlayRate(0.5f);
 		IsWalking = false;
 		Sprinting = false;
+		Croumch = false;
 	}
 
 
@@ -150,10 +167,12 @@ void AMyCharacter::Sprint() {
 void AMyCharacter::Walk() {
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	IsSprint = false;
+	Croumch = false;
 }
 
 void AMyCharacter::Crouched() {
 	GetCharacterMovement()->MaxWalkSpeed = 250.f;
+	IsSprint = false;
 }
 
 

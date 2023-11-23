@@ -43,6 +43,7 @@ protected:
 	UAnimSequence* WalkA;
 	UAnimSequence* Stand;
 	UAnimSequence* SprintA;
+	UAnimSequence* Croutch;
 	bool IsMoving;
 
 
