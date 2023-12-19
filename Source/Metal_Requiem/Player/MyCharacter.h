@@ -4,6 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/Pawn.h" 
+#include "GameFramework/SpringArmComponent.h" 
+#include "GameFramework/PawnMovementComponent.h" 
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Engine.h"
+#include "../../../../../../../../Program Files/Epic Games/UE_5.3/Engine/Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
+#include "../../../../../../../../Program Files/Epic Games/UE_5.3/Engine/Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
+#include "Metal_Requiem/MyATH.H"
+
 #include "MyCharacter.generated.h"
 
 UCLASS()
@@ -17,7 +28,15 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
+	bool isSprinting;
+	float stamina;
+
 	virtual void BeginPlay() override;
+	virtual void move(const FInputActionValue& value);
+	virtual void turn(const FInputActionValue& value);
+	virtual void sprint();
+	virtual void jump();
+	APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 public:	
 	// Called every frame
@@ -32,18 +51,20 @@ protected:
 	class UCameraComponent* Camera;
 	class USpringArmComponent* CameraSpring;
 
-
-	void MoveForward(float InputVector);
-	void MoveSide(float InputVector);
-	void Turn(float InputVector);
-	void LookUp(float InputVector);
-	void Sprint();
-	void Walk();
-	void Crouched();
-	UAnimSequence* WalkA;
-	UAnimSequence* Stand;
-	UAnimSequence* SprintA;
-	bool IsMoving;
+	UPROPERTY(EditAnywhere, BLueprintReadOnly, Category = "Input management")
+	class UInputMappingContext* InputMapping;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input management")
+	class UInputAction* MoveAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input management")
+	class UInputAction* LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input management")
+	class UInputAction* JumpAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input management")
+	class UInputAction* SprintAction;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ATH")
+	TSubclassOf<class UMyATH> PlayerHUDClass;
+
+	class UMyATH* PlayerHUD;
 };

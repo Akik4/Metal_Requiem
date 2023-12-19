@@ -2,51 +2,24 @@
 
 
 #include "MyCharacter.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/Pawn.h" 
-#include "GameFramework/SpringArmComponent.h" 
-#include "GameFramework/PawnMovementComponent.h" 
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Engine.h"
 
 // Sets default values
 AMyCharacter::AMyCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	AutoPossessPlayer;
 
-	//Setup MESH
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Skeletal(TEXT("/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin"));
-	if (Skeletal.Succeeded())
-	{
-		//USkeletalMeshComponent* Mesh = GetMesh
-		GetMesh()->SetSkeletalMesh(Skeletal.Object);
-		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
-		//GetMesh()->SetRelativeRotation(FQuat(FVector(0, 0, 1), -1.57));
-		GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
-		GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
-	}
+	isSprinting = false;
+	stamina = 100.f;
 
-	static ConstructorHelpers::FObjectFinder<UAnimSequence> WalkAnimation(TEXT("/Game/AnimStarterPack/Walk_Fwd_Rifle_Ironsights"));
-	if (WalkAnimation.Object != NULL)
-	{
-		WalkA = WalkAnimation.Object;
-	}
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
-	static ConstructorHelpers::FObjectFinder<UAnimSequence> StandAnimation(TEXT("/Game/AnimStarterPack/Idle_Rifle_Hip"));
-	if (StandAnimation.Object != NULL)
-	{
-		Stand = StandAnimation.Object;
-	}
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 
-	static ConstructorHelpers::FObjectFinder<UAnimSequence> SprintAnimation(TEXT("/Game/AnimStarterPack/Sprint_Fwd_Rifle"));
-	if (SprintAnimation.Object != NULL)
-	{
-		SprintA = SprintAnimation.Object;
-	}
-
-
-	// Create a camera element with position and control
 	CameraSpring = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpring"));
 	CameraSpring->SetupAttachment(RootComponent);
 	CameraSpring->TargetArmLength = 300.f;
@@ -56,9 +29,8 @@ AMyCharacter::AMyCharacter()
 
 	//Create the used camera in the game with Camera spring settings
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+	Camera->bUsePawnControlRotation = false;
 	Camera->SetupAttachment(CameraSpring);
-
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 
 // Called when the game starts or when spawned
@@ -66,42 +38,43 @@ void AMyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-}
+	// Create a camera element with position and control
 
-bool IsWalking = false;
-bool IsSprint = false;
-bool Sprinting = false;
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+
+	APlayerController* me = GetController<APlayerController>();
+	PlayerHUD = CreateWidget<UMyATH>(me, PlayerHUDClass);
+
+	PlayerHUD->AddToPlayerScreen();
+
+}
 // Called every frame
 void AMyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	PlayerHUD->UpdateStamina(stamina, 100.f);
 
-	if (!GetVelocity().IsNearlyZero()) {
-		if (IsSprint)
+	if (isSprinting)
+	{
+		if (stamina >= 0)
 		{
-			if (!Sprinting)
-			{
-				GetMesh()->PlayAnimation(SprintA, true);
-				GetMesh()->SetPlayRate(0.5f);
-				Sprinting = true;
-				IsWalking = false;
-			}
-		}else if (!IsWalking) {
-			GetMesh()->PlayAnimation(WalkA, true);
-			GetMesh()->SetPlayRate(0.5f);
-			IsWalking = true;
-			Sprinting = false;
+			stamina -= 20 * DeltaTime;
+			GetCharacterMovement()->MaxWalkSpeed = 1500.f;
 		}
-		
-	}
-	else {
-		GetMesh()->PlayAnimation(Stand, true);
-		GetMesh()->SetPlayRate(0.5f);
-		IsWalking = false;
-		Sprinting = false;
+		else {
+			GetCharacterMovement()->MaxWalkSpeed = 300.f;
+		}
 	}
 
+	if (!isSprinting)
+	{
+		if (stamina <= 100)
+		{
+			stamina += 10 * DeltaTime;
+		}
+		GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	}
 
 }
 
@@ -109,62 +82,72 @@ void AMyCharacter::Tick(float DeltaTime)
 void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMyCharacter::Sprint);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMyCharacter::Walk);
-	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMyCharacter::Crouched);
-	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AMyCharacter::Walk);
+	APlayerController* PC = Cast<APlayerController>(GetController());
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AMyCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveSide", this, &AMyCharacter::MoveSide);
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer());
 
-	PlayerInputComponent->BindAxis("Turn", this, &AMyCharacter::Turn);
-	PlayerInputComponent->BindAxis("LookUp", this, &AMyCharacter::LookUp);
+	Subsystem->ClearAllMappings();
+	Subsystem->AddMappingContext(InputMapping, 0);
 
+	if (UEnhancedInputComponent* PlayerEnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMyCharacter::move);
+		PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyCharacter::turn);
+		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMyCharacter::jump);
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMyCharacter::sprint);
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMyCharacter::sprint);
+
+	}
 }
 
-void AMyCharacter::MoveForward(float InputVector) {
 
-
-	// Get the current Direction to move -> In this case Forward or Backward
-	FVector World = GetActorForwardVector();
-
-
-	AddMovementInput(World, InputVector);
-
-}
-
-void AMyCharacter::MoveSide(float InputVector)
+void AMyCharacter::move(const FInputActionValue& Value)
 {
-	// Get the current Direction to move -> In this case Right or left
-	FVector World = GetActorRightVector();
+	const FVector2D MoveValue = Value.Get<FVector2D>();
 
-	AddMovementInput(World, InputVector);
+
+	if (MoveValue.Y != 0.f)
+	{
+		// find out which way is forward
+		const FRotator Rotation = controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, MoveValue.Y);
+	}
+	if (MoveValue.X != 0.f)
+	{
+		const FRotator Rotation = controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get right vector 
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		// add movement in that direction
+		AddMovementInput(Direction, MoveValue.X);
+	}
 }
 
-void AMyCharacter::Sprint() {
-	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
-	IsSprint = true;
-}
-
-void AMyCharacter::Walk() {
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
-	IsSprint = false;
-}
-
-void AMyCharacter::Crouched() {
-	GetCharacterMovement()->MaxWalkSpeed = 250.f;
-}
-
-
-void AMyCharacter::Turn(float InputVector)
+void AMyCharacter::turn(const FInputActionValue& Value)
 {
-	// Yaw mean right or left
-	AddControllerYawInput(InputVector);
+	const FVector2D value = Value.Get<FVector2D>();
+
+	if (value.Y != 0.f)
+	{
+		AddControllerPitchInput(-value.Y * 15.f * GetWorld()->GetDeltaSeconds());
+	}
+	if (value.X != 0.f)
+	{
+		AddControllerYawInput(value.X * 15.f * GetWorld()->GetDeltaSeconds());
+	}
 }
 
-void AMyCharacter::LookUp(float InputVector)
+void AMyCharacter::sprint()
 {
-	// Pitch mean Up or Down
-	AddControllerPitchInput(InputVector);
+	isSprinting = !isSprinting;
+}
+
+void AMyCharacter::jump()
+{
+	Jump();
 }
