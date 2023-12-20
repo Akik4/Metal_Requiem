@@ -12,6 +12,8 @@ AMyCharacter::AMyCharacter()
 
 	isSprinting = false;
 	stamina = 100.f;
+	healpoint = 100.f;
+	isTakingDamage = 0.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -53,7 +55,18 @@ void AMyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (healpoint <= 0)
+	{
+		GetMesh()->SetSimulatePhysics(true);
+	}
+
+	if (isTakingDamage != 0.f)
+	{
+		healpoint -= isTakingDamage * DeltaTime;
+	}
+
 	PlayerHUD->UpdateStamina(stamina, 100.f);
+	PlayerHUD->UpdateHP(healpoint, 100.f);
 
 	if (isSprinting)
 	{
@@ -150,4 +163,9 @@ void AMyCharacter::sprint()
 void AMyCharacter::jump()
 {
 	Jump();
+}
+
+void AMyCharacter::removeHP(float heal)
+{
+	isTakingDamage = heal;
 }

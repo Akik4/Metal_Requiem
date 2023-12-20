@@ -17,8 +17,11 @@ class METAL_REQUIEM_API UMyATH : public UUserWidget
 	
 public:
 	virtual void UpdateStamina(float current, float max);
+	virtual void UpdateHP(float current, float max);
 
 protected:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	class UProgressBar* stamina;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UProgressBar* hp;
 };

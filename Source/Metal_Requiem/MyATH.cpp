@@ -7,3 +7,8 @@ void UMyATH::UpdateStamina(float current, float max)
 {
 	stamina->SetPercent(current / max);
 }
+
+void UMyATH::UpdateHP(float current, float max)
+{
+	hp->SetPercent(current / max);
+}

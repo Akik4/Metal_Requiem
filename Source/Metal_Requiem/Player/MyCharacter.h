@@ -29,7 +29,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	bool isSprinting;
+	float isTakingDamage;
 	float stamina;
+	float healpoint;
 
 	virtual void BeginPlay() override;
 	virtual void move(const FInputActionValue& value);
@@ -41,7 +43,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	void removeHP(float hp);
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
