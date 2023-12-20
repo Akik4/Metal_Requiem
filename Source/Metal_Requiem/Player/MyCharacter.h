@@ -29,6 +29,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	bool isSprinting;
+	bool isWalking;
 	float isTakingDamage;
 	float stamina;
 	float healpoint;
@@ -67,6 +68,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ATH")
 	TSubclassOf<class UMyATH> PlayerHUDClass;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animationss")
+	class UAnimationAsset* walkAnimation;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animationss")
+	class UAnimationAsset* StandAnim;
 
 	class UMyATH* PlayerHUD;
 };

@@ -4,6 +4,7 @@
 #include "ennemy.h"
 #include <Runtime/AIModule/Classes/Perception/PawnSensingComponent.h>
 #include <Runtime/AIModule/Classes/AIController.h>
+#include <Components/WidgetComponent.h>
 
 
 // Sets default values
@@ -22,6 +23,8 @@ Aennemy::Aennemy()
 	sensing->OnSeePawn.AddDynamic(this, &Aennemy::OnSeePawn);
 	//sensing->SetPeripheralVisionAngle();
 
+	UWidgetComponent* aaaa = CreateDefaultSubobject<UWidgetComponent>(TEXT("Oui"));
+	//aaaa->SetWidgetClass();
 	
 }
 

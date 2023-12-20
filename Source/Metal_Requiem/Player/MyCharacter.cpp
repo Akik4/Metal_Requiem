@@ -9,7 +9,7 @@ AMyCharacter::AMyCharacter()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	AutoPossessPlayer;
-
+	isWalking = false;
 	isSprinting = false;
 	stamina = 100.f;
 	healpoint = 100.f;
@@ -25,14 +25,13 @@ AMyCharacter::AMyCharacter()
 	CameraSpring = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpring"));
 	CameraSpring->SetupAttachment(RootComponent);
 	CameraSpring->TargetArmLength = 300.f;
-	CameraSpring->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
 	CameraSpring->bUsePawnControlRotation = true;
 
 
 	//Create the used camera in the game with Camera spring settings
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	Camera->bUsePawnControlRotation = false;
 	Camera->SetupAttachment(CameraSpring);
+	Camera->bUsePawnControlRotation = false;
 }
 
 // Called when the game starts or when spawned
@@ -70,17 +69,20 @@ void AMyCharacter::Tick(float DeltaTime)
 
 	if (isSprinting)
 	{
-		if (stamina >= 0)
+		if (GetVelocity().Length() > 0)
 		{
-			stamina -= 20 * DeltaTime;
-			GetCharacterMovement()->MaxWalkSpeed = 1500.f;
-		}
-		else {
-			GetCharacterMovement()->MaxWalkSpeed = 300.f;
+			if (stamina >= 0)
+			{
+				stamina -= 20 * DeltaTime;
+				GetCharacterMovement()->MaxWalkSpeed = 1500.f;
+			}
+			else {
+				GetCharacterMovement()->MaxWalkSpeed = 300.f;
+			}
 		}
 	}
 
-	if (!isSprinting)
+	if (!isSprinting || GetVelocity().Length() == 0)
 	{
 		if (stamina <= 100)
 		{
@@ -88,7 +90,8 @@ void AMyCharacter::Tick(float DeltaTime)
 		}
 		GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	}
-
+	//FString test = TEXT("Bonjour") + GetVelocity().Length();
+	//UE_LOG(LogTemp, Warning, TEXT("%lld"), GetVelocity().Length());
 }
 
 // Called to bind functionality to input
@@ -117,7 +120,6 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AMyCharacter::move(const FInputActionValue& Value)
 {
 	const FVector2D MoveValue = Value.Get<FVector2D>();
-
 
 	if (MoveValue.Y != 0.f)
 	{
