@@ -29,6 +29,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	bool isSprinting;
+	bool isPaused;
 	float stamina;
 
 	virtual void BeginPlay() override;
@@ -36,6 +37,7 @@ protected:
 	virtual void turn(const FInputActionValue& value);
 	virtual void sprint();
 	virtual void jump();
+	virtual void pause();
 	APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 public:	
@@ -61,6 +63,8 @@ protected:
 	class UInputAction* JumpAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input management")
 	class UInputAction* SprintAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input management")
+	class UInputAction* MenuPause;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ATH")

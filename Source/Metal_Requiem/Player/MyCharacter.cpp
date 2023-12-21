@@ -2,6 +2,8 @@
 
 
 #include "MyCharacter.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMyCharacter::AMyCharacter()
@@ -39,6 +41,7 @@ void AMyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// Create a camera element with position and control
+	isPaused = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 
@@ -96,6 +99,7 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMyCharacter::jump);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMyCharacter::sprint);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMyCharacter::sprint);
+		PlayerEnhancedInputComponent->BindAction(MenuPause, ETriggerEvent::Completed, this, &AMyCharacter::pause);
 
 	}
 }
@@ -150,4 +154,21 @@ void AMyCharacter::sprint()
 void AMyCharacter::jump()
 {
 	Jump();
+}
+
+void AMyCharacter::pause()
+{
+	UWorld* World = GetWorld();
+	bool bIsGamePaused = UGameplayStatics::IsGamePaused(World);
+	if (!bIsGamePaused)
+	{
+		UGameplayStatics::SetGamePaused(World, !bIsGamePaused);	
+		UE_LOG(LogTemp, Warning, TEXT("Game Paused"));
+	}
+	else 
+	{
+		UGameplayStatics::SetGamePaused(World, !bIsGamePaused);
+		UE_LOG(LogTemp, Warning, TEXT("Game Unpause"));
+	}
+	
 }
