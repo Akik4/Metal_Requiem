@@ -3,7 +3,8 @@
 
 #include "enemyATH.h"
 
-UenemyATH::UenemyATH()
-{
+
+void UenemyATH::onRotate()
+{	
 
 }

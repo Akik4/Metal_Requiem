@@ -14,6 +14,8 @@
 #include "../../../../../../../../Program Files/Epic Games/UE_5.3/Engine/Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputSubsystems.h"
 #include "../../../../../../../../Program Files/Epic Games/UE_5.3/Engine/Plugins/EnhancedInput/Source/EnhancedInput/Public/EnhancedInputComponent.h"
 #include "Metal_Requiem/MyATH.H"
+#include <Metal_Requiem/character_animation.h>
+
 
 #include "MyCharacter.generated.h"
 
@@ -25,6 +27,7 @@ class METAL_REQUIEM_API AMyCharacter : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AMyCharacter();
+	bool isJumping;
 
 protected:
 	// Called when the game starts or when spawned
@@ -38,7 +41,7 @@ protected:
 	virtual void move(const FInputActionValue& value);
 	virtual void turn(const FInputActionValue& value);
 	virtual void sprint();
-	virtual void jump();
+	virtual void OnJumpPressed();
 	APlayerController* controller = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
 public:	
@@ -71,9 +74,9 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animationss")
-	class UAnimationAsset* walkAnimation;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animationss")
-	class UAnimationAsset* StandAnim;
+	class UAnimMontage* jumpAnimation;
 
+
+	class Ucharacter_animation* tests = Cast<Ucharacter_animation>(GetMesh()->GetAnimInstance());
 	class UMyATH* PlayerHUD;
 };

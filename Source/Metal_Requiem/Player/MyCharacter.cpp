@@ -11,6 +11,7 @@ AMyCharacter::AMyCharacter()
 	AutoPossessPlayer;
 	isWalking = false;
 	isSprinting = false;
+	isJumping = false;
 	stamina = 100.f;
 	healpoint = 100.f;
 	isTakingDamage = 0.f;
@@ -109,7 +110,7 @@ void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	{
 		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMyCharacter::move);
 		PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMyCharacter::turn);
-		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMyCharacter::jump);
+		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AMyCharacter::OnJumpPressed);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMyCharacter::sprint);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMyCharacter::sprint);
 
@@ -162,9 +163,24 @@ void AMyCharacter::sprint()
 	isSprinting = !isSprinting;
 }
 
-void AMyCharacter::jump()
+void AMyCharacter::OnJumpPressed()
 {
+	//float test = GetMesh()->GetAnimInstance()->Montage_Play(jumpAnimation);
 	Jump();
+
+	if (tests)
+	{
+		tests->startJumping = true;
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, [&]()
+			{
+				tests->startJumping = false;
+			}, 2, false);
+
+	}
+
+	
+
 }
 
 void AMyCharacter::removeHP(float heal)
